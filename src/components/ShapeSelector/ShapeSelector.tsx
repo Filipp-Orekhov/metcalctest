@@ -1,16 +1,14 @@
 import { useSelector, useDispatch} from 'react-redux';
-import { AppDispatch, RootState } from '../../store/store.ts';
+import { AppDispatch } from '../../store/store.ts';
 import { fetchShapes, selectShape } from '../../store/metalSlice.ts';
 import { useEffect } from 'react';
 import '../../styles/globals.scss';
 import style from "./style.module.scss";
-
-
-
+import { getShapes } from '../../store/selectors.ts';
 
 const ShapeSelector = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const shapes = useSelector((state: RootState) => state.metal.shapes);
+  const shapes = useSelector(getShapes);
 
   useEffect(() => {
     dispatch(fetchShapes());

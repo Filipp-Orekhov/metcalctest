@@ -1,70 +1,63 @@
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/store.ts';
-import { useEffect, useState } from 'react';
-import '../../styles/globals.scss';
+import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import "../../styles/globals.scss";
 import style from "./style.module.scss";
+import { getSelectedShape, getSelectedMaterial } from "../../store/selectors";
+import InputField from "./InputField.tsx";
+import { labelMap } from '../../types';
+
 
 
 const Calculator = () => {
-  const { selectedShape, selectedMaterial } = useSelector((state: RootState) => state.metal);
+  const selectedShape = useSelector(getSelectedShape);
+  const selectedMaterial = useSelector(getSelectedMaterial);
 
-  type ParamsType = {
-    thickness: string;
-    materialLength: string;
-    diameter: string;
-    firstSide: string;
-    secondSide: string;
-  };
+  type ParamsType = Record<string, string>;
 
-  const [params, setParams] = useState<ParamsType>({
-    thickness: "",
-    materialLength: "",
-    diameter: "",
-    firstSide: "",
-    secondSide: ""
-  });
+  const [params, setParams] = useState<ParamsType>({});
 
   useEffect(() => {
-    setParams({
-      thickness: "",
-      materialLength: "",
-      diameter: "",
-      firstSide: "",
-      secondSide: ""
-    });
+    setParams({});
   }, [selectedShape]);
 
   if (!selectedShape || !selectedMaterial || !selectedShape.requiredParams) return null;
 
-  const calculateWeight = () => {
+  const handleInputChange = (key: string, value: string) => {
+    if (value === "" || (/^\d*\.?\d*$/.test(value) && Number(value) > 0)) {
+      setParams((prev) => ({ ...prev, [key]: value }));
+    }
+  };
+
+  const calculateWeight = (): string => {
     try {
       const formula = selectedShape.formula
         .replace(/pi/g, `${Math.PI}`)
         .replace(/density/g, `${selectedMaterial.density}`);
 
-      const { thickness, diameter, firstSide, secondSide, materialLength } = params;
-
-      const filledValues = [thickness, materialLength].filter(val => val !== "");
+      const filledValues = Object.values(params).filter(val => val !== "");
       if (filledValues.some(val => Number(val) <= 0)) {
         return "Введите корректные данные";
       }
 
       if (selectedShape.requiredParams.includes("firstSide") &&
         selectedShape.requiredParams.includes("secondSide") &&
-        (!firstSide || !secondSide)) {
+        (!params.firstSide || !params.secondSide)) {
         return "Введите обе стороны";
       }
 
-      if (Number(firstSide) > 0 && Number(thickness) > 0 && Number(firstSide) <= 2 * Number(thickness)) {
-        return `Сторона  ${firstSide} мм слишком мала для стенки ${thickness} мм`;
+      if (params.firstSide && params.thickness &&
+        Number(params.firstSide) <= 2 * Number(params.thickness)) {
+        return `Сторона ${params.firstSide} мм слишком мала для стенки ${params.thickness} мм`;
       }
 
-      if (Number(secondSide) > 0 && Number(thickness) > 0 && Number(secondSide) <= 2 * Number(thickness)) {
-        return `Сторона  ${secondSide} мм слишком мала для стенки ${thickness} мм`;
+      if (params.secondSide && params.thickness &&
+        Number(params.secondSide) <= 2 * Number(params.thickness)) {
+        return `Сторона ${params.secondSide} мм слишком мала для стенки ${params.thickness} мм`;
       }
 
-      if (Number(diameter) > 0 && Number(thickness) > 0 && Number(diameter) <= 2 * Number(thickness)) {
-        return `Диаметр ${diameter} мм слишком мал для стенки ${thickness} мм`;
+      if (params.diameter && params.thickness &&
+        Number(params.diameter) <= 2 * Number(params.thickness)) {
+        return `Диаметр ${params.diameter} мм слишком мал для стенки ${params.thickness} мм`;
       }
 
       const result = new Function(...Object.keys(params), `return ${formula}`)(
@@ -77,67 +70,23 @@ const Calculator = () => {
     }
   };
 
-  const handleInputChange = (key: keyof ParamsType, value: string) => {
-    if (value === "" || (/^\d*\.?\d*$/.test(value) && Number(value) > 0)) {
-      setParams(prev => ({ ...prev, [key]: value }));
-    }
-  };
-
   const weight = calculateWeight();
+  const isError = weight.includes("Введите") || weight.includes("Диаметр") || weight === "Ошибка";
 
   return (
     <div key={selectedShape.id} className={style.Calculator}>
       <h3>Расчёт массы</h3>
-      {selectedShape.requiredParams.includes("firstSide") && (
-      <input className='custom-input'
-          type="text"
-          inputMode="decimal"
-          pattern="^\d*\.?\d*$"
-          placeholder="Сторона 1, мм"
-          value={params.firstSide}
-          onChange={event => handleInputChange("firstSide", event.target.value)}
-      />)}
-      {selectedShape.requiredParams.includes("secondSide") && (
-        <input className='custom-input'
-          type="text"
-          inputMode="decimal"
-          pattern="^\d*\.?\d*$"
-          placeholder="Сторона 2, мм"
-          value={params.secondSide}
-          onChange={event => handleInputChange("secondSide", event.target.value)}
-      />)}
-      {selectedShape.requiredParams.includes("diameter") && (
-        <input className='custom-input'
-          type="text"
-          inputMode="decimal"
-          pattern="^\d*\.?\d*$"
-          placeholder="Диаметр, мм"
-          value={params.diameter}
-          onChange={event => handleInputChange("diameter", event.target.value)}
-        />)}
-      {selectedShape.requiredParams.includes("thickness") && (
-        <input className='custom-input'
-           type="text"
-           inputMode="decimal"
-           pattern="^\d*\.?\d*$"
-           placeholder="Толщина стенки, мм"
-           value={params.thickness}
-           onChange={event => handleInputChange("thickness", event.target.value)}
-        />)}
-      {selectedShape.requiredParams.includes("materialLength") && (
-        <input className='custom-input'
-           type="text"
-           inputMode="decimal"
-           pattern="^\d*\.?\d*$"
-           placeholder="Длина, м"
-           value={params.materialLength}
-           onChange={event => handleInputChange("materialLength", event.target.value)}
-        />)}
-        {isNaN(Number(weight)) || weight === "Введите корректные данные" || weight === "Введите обе стороны" || weight.includes("Диаметр слишком мал") ? (
-        <p>{weight}</p>
-      ) : (
-        <p>Масса: {weight} кг</p>
-      )}
+
+      {selectedShape.requiredParams.map((param) => (
+        <InputField
+          key={param}
+          label={labelMap[param] || param}
+          value={params[param] || ""}
+          onChange={(value) => handleInputChange(param, value)}
+        />
+      ))}
+
+      {isError ? <p>{weight}</p> : <p className={style.result}>Масса: {weight} кг</p>}
     </div>
   );
 };

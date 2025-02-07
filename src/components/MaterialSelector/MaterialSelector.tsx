@@ -1,14 +1,13 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../store/store.ts';
 import { selectMaterial } from '../../store/metalSlice.ts';
 import '../../styles/globals.scss';
 import style from "./style.module.scss";
-
+import { getSelectedShape, getSelectedMaterial } from "../../store/selectors";
 
 const MaterialSelector = () => {
   const dispatch = useDispatch();
-  const selectedShape =useSelector((state: RootState) => state.metal.selectedShape);
-  const selectedMaterial = useSelector((state: RootState) => state.metal.selectedMaterial);
+  const selectedShape = useSelector(getSelectedShape);
+  const selectedMaterial = useSelector(getSelectedMaterial);
 
   if (!selectedShape)
     return null;
