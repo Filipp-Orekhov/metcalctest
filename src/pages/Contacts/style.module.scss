@@ -1,0 +1,13 @@
+@forward "../../styles/globals";
+
+.Contacts {
+  width: 100%;
+  margin: 0 auto;
+  max-width: 1500px;
+  display: flex;
+  flex-direction: column;
+  gap: 100px;
+  align-items: center;
+  color: #0D47A1;
+}
+

@@ -1,0 +1,22 @@
+@forward "../../styles/globals";
+@use "../../styles/media" as *;
+
+.main_container {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 70px;
+  align-items: center;
+  color: #0D47A1;
+
+  @include media-breakpoint-up(md) {
+
+    gap: 30px
+  }
+
+  @include media-breakpoint-up(minsm) {
+    gap: 10px;
+  }
+}

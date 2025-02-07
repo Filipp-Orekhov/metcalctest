@@ -1,0 +1,8 @@
+@forward "../../styles/globals";
+
+.Calculator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
